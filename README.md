@@ -6,6 +6,7 @@ This utility creates [Metamask Snaps](https://metamask.io/snaps/) for Sovereign 
 
 - [Git](https://git-scm.com/)
 - [Rust](https://www.rust-lang.org/tools/install)
+- Rust WASI target: `rustup target add wasm32-wasi`
 - [Yarn](https://yarnpkg.com/)
 - [binaryen](https://github.com/WebAssembly/binaryen)
 - [wabt](https://github.com/WebAssembly/wabt)
