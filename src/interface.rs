@@ -231,6 +231,13 @@ impl Interface {
         if target.exists() {
             if fs::remove_dir(&target).is_err() {
                 if !args.force {
+                    if args.defaults {
+                        anyhow::bail!(
+                            "The `defaults` flag is set, but the target `{}` already exists. This operation is not permitted. To bypass this check for the `--defaults` arguments, combine it with `--force`.",
+                            target.display()
+                        );
+                    }
+
                     let prompt = format!(
                         "The provided target `{}` is not empty and will be erased; confirm? [y/n]",
                         target.display()
