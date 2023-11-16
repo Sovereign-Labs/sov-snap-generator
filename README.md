@@ -86,7 +86,13 @@ Some prompts can be specified through CLI arguments. For more information, run:
 sov-snap-generator --help
 ```
 
-At the project root, execute:
+To skip all prompts and checks, run:
+
+```bash
+sov-snap-generator --defaults --force
+```
+
+To run the interactive mode, at the project root, execute:
 
 ```bash
 sov-snap-generator
