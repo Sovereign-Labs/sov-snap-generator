@@ -1,0 +1,16 @@
+[package]
+name = "sov-snap-generator"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["Sovereign Labs <info@sovereign.xyz>"]
+homepage = "https://www.sovereign.xyz"
+repository = "https://github.com/Sovereign-Labs/sov-snap-generator"
+description = "Utility to generate Metamask Snaps from Sovereign SDK projects"
+readme = "README.md"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.4", features = ["derive"] }
+rustyline = { version = "12.0", features = ["derive"] }
+toml = "0.8"
