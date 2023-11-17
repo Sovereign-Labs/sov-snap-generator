@@ -15,7 +15,7 @@ This utility creates [Metamask Snaps](https://metamask.io/snaps/) for Sovereign 
 ## Installation
 
 ```bash
-cargo install --git https://github.com/Sovereign-Labs/sov-snap-generator --tag "v0.1.0"
+cargo install --git https://github.com/Sovereign-Labs/sov-snap-generator --tag "v0.1.1"
 ```
 
 Also, check if the `wasm32-wasi` target is installed:
