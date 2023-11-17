@@ -283,7 +283,7 @@ impl Interface {
                     rl,
                     args,
                     Some("Insert the branch of the snap template"),
-                    Some("v0.1.1"),
+                    Some("v0.1.2"),
                 )
             }
         };
