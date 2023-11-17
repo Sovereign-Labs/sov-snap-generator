@@ -6,7 +6,7 @@ This utility creates [Metamask Snaps](https://metamask.io/snaps/) for Sovereign 
 
 - [Git](https://git-scm.com/)
 - [Rust](https://www.rust-lang.org/tools/install)
-- Rust WASI target: `rustup target add wasm32-wasi`
+- [Rust WASI](https://github.com/bytecodealliance/wasmtime/blob/183cb0f2f8b0298f0bc9fd1140aaef4a0fb0368c/docs/WASI-tutorial.md#from-rust)
 - [Yarn](https://yarnpkg.com/)
 - [binaryen](https://github.com/WebAssembly/binaryen)
 - [wabt](https://github.com/WebAssembly/wabt)
@@ -16,6 +16,18 @@ This utility creates [Metamask Snaps](https://metamask.io/snaps/) for Sovereign 
 
 ```bash
 cargo install --git https://github.com/Sovereign-Labs/sov-snap-generator --tag "v0.1.0"
+```
+
+Also, check if the `wasm32-wasi` target is installed:
+
+```bash
+rustup target list --installed | grep wasm32-wasi
+```
+
+If the command above yields no output, proceed with the target installation:
+
+```bash
+rustup target add wasm32-wasi
 ```
 
 ## Usage
