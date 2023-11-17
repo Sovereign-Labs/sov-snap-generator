@@ -32,6 +32,8 @@ rustup target add wasm32-wasi
 
 ## Usage
 
+![Demo](https://github.com/Sovereign-Labs/sov-snap-generator/assets/8730839/0a9dbd0a-cf74-452f-ad5b-77c3535bf9ba)
+
 #### Example module
 
 This example will re-export the `RuntimeCall` from `demo-stf`.
