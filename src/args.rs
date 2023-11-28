@@ -1,42 +1,64 @@
-use std::path::PathBuf;
-
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 pub struct Cli {
-    /// Path to the directory that contains the manifest TOML file of the project.
-    #[arg(short, long)]
-    pub path: Option<PathBuf>,
+    #[command(subcommand)]
+    pub command: Commands,
 
-    /// Target directory to output the generated project.
-    #[arg(short, long)]
-    pub target: Option<PathBuf>,
-
-    /// Git remote to use when cloning the origin repository.
-    #[arg(short, long)]
-    pub origin: Option<String>,
-
-    /// Branch to use when cloning the origin repository.
-    #[arg(short, long)]
-    pub branch: Option<String>,
-
-    /// Context definition of the runtime spec.
-    #[arg(short, long)]
-    pub context: Option<String>,
-
-    /// DA definition of the runtime.
-    #[arg(short, long)]
-    pub da_spec: Option<String>,
-
-    /// Runtime call definition.
-    #[arg(short, long)]
-    pub runtime: Option<String>,
+    #[arg(
+        long,
+        short = 'q',
+        action = clap::ArgAction::Count,
+        global = true,
+        help = "Sets the verbosity level.",
+    )]
+    pub quiet: u8,
 
     /// Defaults all inputs.
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub defaults: bool,
 
     /// Skips all confirmations.
-    #[arg(long)]
+    #[arg(short, long, global = true)]
     pub force: bool,
+}
+
+pub struct InterfaceArgs {
+    pub quiet: u8,
+    pub defaults: bool,
+    pub force: bool,
+}
+
+impl Cli {
+    pub fn split_interface(self) -> (Subcommands, InterfaceArgs) {
+        let command = match self.command {
+            Commands::SovSnapGenerator { command } => command,
+        };
+
+        (
+            command,
+            InterfaceArgs {
+                quiet: self.quiet,
+                defaults: self.defaults,
+                force: self.force,
+            },
+        )
+    }
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum Commands {
+    SovSnapGenerator {
+        #[command(subcommand)]
+        command: Subcommands,
+    },
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum Subcommands {
+    /// Initializes the project from the provided path.
+    Init(super::init::Init),
+
+    /// Builds a project initialized via `Init`.
+    Build(super::build::Build),
 }

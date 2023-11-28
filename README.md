@@ -15,7 +15,7 @@ This utility creates [Metamask Snaps](https://metamask.io/snaps/) for Sovereign 
 ## Installation
 
 ```bash
-cargo install --git https://github.com/Sovereign-Labs/sov-snap-generator --tag "v0.1.1"
+cargo install --git https://github.com/Sovereign-Labs/sov-snap-generator --tag "v0.1.2"
 ```
 
 Also, check if the `wasm32-wasi` target is installed:
@@ -38,7 +38,7 @@ rustup target add wasm32-wasi
 
 This example will re-export the `RuntimeCall` from `demo-stf`.
 
-First, we create the project:
+First, we create the sample project:
 
 ```bash
 cargo new --lib sov-runtime
@@ -66,13 +66,7 @@ demo-stf = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = 
 sov-mock-da = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be" }
 ```
 
-Then, fetch the default `constants.json` required for module compilation.
-
-```bash
-wget https://raw.githubusercontent.com/Sovereign-Labs/sovereign-sdk/d42e289f26b9824b5ed54dbfbda94007dee305b2/constants.json
-```
-
-Finally, update the `src/lib.rs` with the following:
+Then, update the `src/lib.rs` with the following:
 
 ```rust
 /// The `Context` will be used to define the asymmetric key pair.
@@ -83,6 +77,12 @@ pub use sov_mock_da::MockDaSpec as DaSpec;
 
 /// The `RuntimeCall` will be the call message of the transaction to be signed. This is normally generated automatically by the SDK via the `DispatchCall` derive macro.
 pub use demo_stf::runtime::RuntimeCall;
+```
+
+Finally, fetch the default `constants.json` required for module compilation.
+
+```bash
+wget https://raw.githubusercontent.com/Sovereign-Labs/sovereign-sdk/d42e289f26b9824b5ed54dbfbda94007dee305b2/constants.json
 ```
 
 The utility defaults to searching for `Context`, `DaSpec`, and `RuntimeCall` definitions at the project root. However, these can be replaced with other paths.
@@ -101,41 +101,27 @@ Some prompts can be specified through CLI arguments. For more information, run:
 sov-snap-generator --help
 ```
 
-To skip all prompts and checks, run:
+We use the options `--defaults` and `--force` to skip prompt confirmations and checks.
+
+First, we generate the target project. This will create the Snap project under `../sov-runtime-snap` (i.e. `--target` argument).
 
 ```bash
-sov-snap-generator --defaults --force
+cargo sov-snap-generator init --defaults --force --target ../sov-runtime-snap
 ```
 
-To run the interactive mode, at the project root, execute:
+We can perform a sanity check on the generated WASM project. This project is editable by the user to adhere to the WASM file specification. Nevertheless, functions designated with the directive `#[no_mangle]` will be consumed by the Snap and will typically remain unchanged.
 
 ```bash
-sov-snap-generator
+cargo check --manifest-path ../sov-runtime-snap/external/sov-wasm/Cargo.toml
 ```
 
-The first prompt will inquire about the project `path`. It defaults to the current directory, so you can simply press `Enter`.
+To compile the Snap, run:
 
 ```bash
-Insert the path to your `Cargo.toml`
-> /home/sovereign/sov-runtime
+cargo sov-snap-generator build --target ../sov-runtime-snap
 ```
 
-The next prompt asks for the manifest definition to use the module as a dependency. It defaults to the parent directory of the resolved project manifest file.
-
-The generated WASM file requires certain dependencies. The subsequent prompts will default to the dependencies specified in the project manifest file, if present. It will then ask for the following items in order:
-
-- Base project (usually a path pointing to the parent directory of the project manifest file).
-- [borsh](https://crates.io/crates/borsh)
-- [serde_json](https://crates.io/crates/serde_json)
-- [sov-modules-api](https://github.com/Sovereign-Labs/sovereign-sdk/tree/d42e289f26b9824b5ed54dbfbda94007dee305b2/module-system/sov-modules-api)
-
-The next step is to define the target directory in which the generated Snap will be placed. It defaults to a new directory adjacent to the current project, suffixed by `-snap`.
-
-The WASM file depends on specific definitions, typically customized by the module implementation. By default, it searches the root of the project for exports of `Context`, `DaSpec`, and `RuntimeCall`. The subsequent prompts will ask for these paths. If your implementation diverges from this standard, replace these items with their fully qualified paths.
-
-The template snap will be downloaded from a GitHub release. The next prompts inquire about the repository origin and its branch/tag.
-
-After the installation is executed, you should see a message indicating the project generated on `<TARGET>`.
+Finally, you can run the local development environment.
 
 #### Run a local development environment
 
@@ -148,8 +134,50 @@ cd ../sov-runtime-snap
 yarn start
 ```
 
-Your Snap will be accessible by default at http://localhost:8000. Click Connect/Reconnect to load the Snap into your Metamask Flask, enabling you to sign transactions.
+Your Snap is accessible by default at `http://localhost:8000`. To load the Snap into your Metamask Flask and enable signing of transactions, click on Connect/Reconnect.
 
-This development environment allows you to submit a signed transaction to a [sov-sequencer](https://github.com/Sovereign-Labs/sovereign-sdk/tree/d42e289f26b9824b5ed54dbfbda94007dee305b2/full-node/sov-sequencer). However, most modern browsers query external services for a [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policy.
+This development environment allows you to submit a signed transaction to a [sov-sequencer](https://github.com/Sovereign-Labs/sovereign-sdk/tree/d42e289f26b9824b5ed54dbfbda94007dee305b2/full-node/sov-sequencer). However, most modern browsers query external services for a [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policy. Normally, a Sequencer will be served behind a layer that handles authentication.
 
-You can either disable CORS in your browser or set up a proxy to handle CORS requests, forwarding the payload to the sequencer.
+To bypass this issue, you can either disable CORS in your browser or set up a proxy to handle CORS requests, forwarding the payload to the sequencer. Here is a minimalistic Python script that will run a CORS proxy on port 9000, redirecting all requests to `127.0.0.1:12345`:
+
+```python
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+# Define the target URL (the URL you want to proxy to)
+TARGET_URL = "http://127.0.0.1:12345"
+
+# Enable CORS for all routes
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+@app.route('/', defaults={'path': ''}, methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/<path:path>', methods=['GET', 'POST', 'OPTIONS'])
+def proxy(path):
+    target_url = f"{TARGET_URL}/{path}"
+    headers = {key: value for (key, value) in request.headers if key != 'Host'}
+
+    if request.method == 'OPTIONS':
+        # Handle preflight requests
+        return jsonify({'status': 'ok'})
+
+    if request.method == 'POST':
+        # Forward POST request
+        response = requests.post(target_url, data=request.get_data(), headers=headers)
+    else:
+        # Forward GET request
+        response = requests.get(target_url, headers=headers)
+
+    # Forward the received headers and content to the client
+    headers = [(key, value) for (key, value) in response.headers.items()]
+    return response.content, response.status_code, headers
+
+if __name__ == '__main__':
+    app.run(port=9000)  # Change the port if needed
+```
