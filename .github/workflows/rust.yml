@@ -29,4 +29,6 @@ jobs:
       - name: Sanity check the sov-runtime library
         run: cargo check --manifest-path ./sov-runtime/Cargo.toml
       - name: Generate the Snap project
-        run: cargo run -- sov-snap-generator init --defaults
+        run: cargo run -- sov-snap-generator init --defaults --path ./sov-runtime --target ./sov-runtime-snap
+      - name: Build the Snap project
+        run: cargo run -- sov-snap-generator build --defaults --target ./sov-runtime-snap
