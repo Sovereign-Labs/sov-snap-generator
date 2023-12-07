@@ -21,12 +21,12 @@ jobs:
       - name: Install wasm32-wasi
         run: rustup target add wasm32-wasi
       - name: Create a new sov-runtime library
-        run: cargo new --lib sov-runtime
-      - name: Edit the manifest of the sov-runtime library
-        run: echo -e '[package]\nname = "sov-runtime"\nversion = "0.1.0"\nedition = "2021"\n[dependencies]\nborsh = "0.10.3"\nserde_json = "1.0"\nsov-modules-api = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be", features = ["serde"] }\ndemo-stf = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be", features = ["serde"] }\nsov-mock-da = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be" }\n' > ./sov-runtime/Cargo.toml
-      - name: Edit the lib.rs of the sov-runtime library
-        run: echo -e 'pub use sov_modules_api::default_context::ZkDefaultContext as Context;\npub use sov_mock_da::MockDaSpec as DaSpec;\npub use demo_stf::runtime::RuntimeCall;\n' > ./sov-runtime/src/lib.rs
-      - name: Edit the constants.json of the sov-runtime library
-        run: wget -O ./sov-runtime/constants.json 'https://raw.githubusercontent.com/Sovereign-Labs/sovereign-sdk/d42e289f26b9824b5ed54dbfbda94007dee305b2/constants.json'
+        run: |
+          cargo new --lib sov-runtime
+          echo -e '[package]\nname = "sov-runtime"\nversion = "0.1.0"\nedition = "2021"\n[dependencies]\nborsh = "0.10.3"\nserde_json = "1.0"\nsov-modules-api = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be", features = ["serde"] }\ndemo-stf = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be", features = ["serde"] }\nsov-mock-da = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be" }\n' > ./sov-runtime/Cargo.toml
+          echo -e 'pub use sov_modules_api::default_context::ZkDefaultContext as Context;\npub use sov_mock_da::MockDaSpec as DaSpec;\npub use demo_stf::runtime::RuntimeCall;\n' > ./sov-runtime/src/lib.rs
+          wget -O ./sov-runtime/constants.json 'https://raw.githubusercontent.com/Sovereign-Labs/sovereign-sdk/d42e289f26b9824b5ed54dbfbda94007dee305b2/constants.json'
       - name: Sanity check the sov-runtime library
         run: cargo check --manifest-path ./sov-runtime/Cargo.toml
+      - name: Generate the Snap project
+        run: cargo run -- sov-snap-generator init --defaults
