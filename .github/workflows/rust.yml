@@ -47,6 +47,6 @@ jobs:
       - name: Install Google Chrome
         run: yarn install-chrome
       - name: Run Snap tests
-        run |
+        run: |
           cd sov-runtime-snap
           yarn test
