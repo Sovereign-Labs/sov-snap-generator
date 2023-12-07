@@ -43,7 +43,9 @@ jobs:
           curl -L $PACKAGE_URL | tar xz -C $INSTALL_PATH
         shell: bash
       - name: Build the Snap project
-        run: cargo run -- sov-snap-generator build --defaults --target ./sov-runtime-snap
+        run: |
+          PATH="/usr/local/bin/binaryen-version_116/bin:/usr/local/bin/wabt-1.0.34/bin:$PATH"
+          cargo run -- sov-snap-generator build --defaults --target ./sov-runtime-snap
       - name: Run Snap tests
         run: |
           cd sov-runtime-snap
