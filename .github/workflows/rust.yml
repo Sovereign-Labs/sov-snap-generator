@@ -42,11 +42,10 @@ jobs:
           INSTALL_PATH="/usr/local/bin"
           curl -L $PACKAGE_URL | tar xz -C $INSTALL_PATH
         shell: bash
-      - name: Install Google Chrome
-        run: yarn install-chrome
       - name: Build the Snap project
         run: cargo run -- sov-snap-generator build --defaults --target ./sov-runtime-snap
       - name: Run Snap tests
         run: |
           cd sov-runtime-snap
+          yarn install-chrome
           yarn test
