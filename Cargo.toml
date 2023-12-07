@@ -1,6 +1,6 @@
 [package]
 name = "sov-snap-generator"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Sovereign Labs <info@sovereign.xyz>"]
@@ -12,5 +12,12 @@ readme = "README.md"
 [dependencies]
 anyhow = "1.0"
 clap = { version = "4.4", features = ["derive"] }
-rustyline = { version = "12.0", features = ["derive"] }
+console = "0.15"
+duct = "0.13"
+rustyline = { version = "10.0" }
+rustyline-derive = "0.7"
 toml = "0.8"
+
+[[bin]]
+name = "cargo-sov-snap-generator"
+path = "./src/main.rs"

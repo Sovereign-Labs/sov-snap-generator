@@ -11,11 +11,43 @@ env:
   RUSTFLAGS: -D warnings
 
 jobs:
-  build:
-    name: build
+  snap:
+    name: Generate and test a Snap
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust
         run: rustup show
-      - name: Build
-        run: cargo build
+      - name: Install wasm32-wasi
+        run: rustup target add wasm32-wasi
+      - name: Create the sov-runtime library
+        run: |
+          cargo new --lib sov-runtime
+          echo -e '[package]\nname = "sov-runtime"\nversion = "0.1.0"\nedition = "2021"\n[dependencies]\nborsh = "0.10.3"\nserde_json = "1.0"\nsov-modules-api = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be", features = ["serde"] }\ndemo-stf = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be", features = ["serde"] }\nsov-mock-da = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev = "df169be" }\n' > ./sov-runtime/Cargo.toml
+          echo -e 'pub use sov_modules_api::default_context::ZkDefaultContext as Context;\npub use sov_mock_da::MockDaSpec as DaSpec;\npub use demo_stf::runtime::RuntimeCall;\n' > ./sov-runtime/src/lib.rs
+          wget -O ./sov-runtime/constants.json 'https://raw.githubusercontent.com/Sovereign-Labs/sovereign-sdk/d42e289f26b9824b5ed54dbfbda94007dee305b2/constants.json'
+      - name: Sanity check the sov-runtime library
+        run: cargo check --manifest-path ./sov-runtime/Cargo.toml
+      - name: Generate the Snap project
+        run: cargo run -- sov-snap-generator init --defaults --path ./sov-runtime --target ./sov-runtime-snap
+      - name: Install WASM tools
+        run: |
+          PACKAGE_URL="https://github.com/WebAssembly/binaryen/releases/download/version_116/binaryen-version_116-x86_64-linux.tar.gz"
+          INSTALL_PATH="/usr/local/bin"
+          curl -L $PACKAGE_URL | tar xz -C $INSTALL_PATH
+        shell: bash
+      - name: Install WABT
+        run: |
+          PACKAGE_URL="https://github.com/WebAssembly/wabt/releases/download/1.0.34/wabt-1.0.34-ubuntu.tar.gz"
+          INSTALL_PATH="/usr/local/bin"
+          curl -L $PACKAGE_URL | tar xz -C $INSTALL_PATH
+        shell: bash
+      - name: Build the Snap project
+        run: |
+          PATH="/usr/local/bin/binaryen-version_116/bin:/usr/local/bin/wabt-1.0.34/bin:$PATH"
+          cargo run -- sov-snap-generator build --defaults --target ./sov-runtime-snap
+      - name: Run Snap tests
+        run: |
+          cd sov-runtime-snap
+          yarn install-chrome
+          yarn test
